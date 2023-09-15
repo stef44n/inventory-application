@@ -1,6 +1,0 @@
-easy2memba
-85ZC25CtLu3pXIft
-
-mongodb+srv://easy2memba:<password>@cluster0.xyszpbg.mongodb.net/?retryWrites=true&w=majority
-
-mongodb+srv://easy2memba:85ZC25CtLu3pXIft@cluster0.xyszpbg.mongodb.net/inventory_app?retryWrites=true&w=majority
