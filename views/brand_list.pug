@@ -1,0 +1,14 @@
+extends layout
+
+block content
+  h1= title
+
+  ul
+    each brand in brand_list
+      li
+        a(href=brand.url) #{brand.name} (#{brand.country})
+        if brand.established
+          span   [ est: #{brand.est_formatted} ]
+
+    else
+      li There are no brands.

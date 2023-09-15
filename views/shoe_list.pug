@@ -1,0 +1,13 @@
+extends layout
+
+block content
+  h1= title
+
+  ul
+    each shoe in shoe_list
+      li
+        a(href=shoe.url) #{shoe.name}
+        |  (#{shoe.brand.name})
+
+    else
+      li There are no shoes.

@@ -1,0 +1,34 @@
+extends layout
+
+block content
+  h1 Model: #{shoe.name}
+
+  p #[strong Brand:] 
+    a(href=shoe.brand.url) #{shoe.brand.name}
+  p #[strong Description:] #{shoe.description}
+  p #[strong Price:] $#{shoe.price}
+  p #[strong Type:] 
+    each val, index in shoe.type
+      a(href=val.url) #{val.name}
+      if index < shoe.type.length - 1
+        |, 
+
+  div(style='margin-left:20px;margin-top:20px')
+    h4 In stock (#{shoe_instances.length})
+
+    each val in shoe_instances
+      hr
+      if val.status=='Available'
+        p.text-success #{val.status}
+      else if val.status=='Maintenance'
+        p.text-danger #{val.status}
+      else
+        p.text-warning #{val.status}
+      p #[strong Color:] #{val.color}
+      if val.status!='Available'
+        p #[strong Size:] #{val.size}
+      p #[strong Id:] 
+        a(href=val.url) #{val._id}
+
+    else
+      p.text-danger These are currently out of stock.

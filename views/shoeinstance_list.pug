@@ -1,0 +1,20 @@
+extends layout
+
+block content
+  h1= title
+
+  ul
+    each val in shoeinstance_list
+      li
+        a(href=val.url) #{val.shoe.name} : #{val.color} 
+        if val.status=='Available'
+          span.text-success #{val.status}
+        else if val.status=='Maintenance'
+          span.text-danger #{val.status}
+        else
+          span.text-warning #{val.status}
+        if val.status!='Available'
+          span  ( Size: #{val.size} )
+
+    else
+      li There are no shoe copies in this library.

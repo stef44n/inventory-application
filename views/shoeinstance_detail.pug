@@ -1,0 +1,15 @@
+extends layout
+
+block content
+
+  h1 ID: #{shoeinstance._id}
+
+  p #[strong Title:] 
+    a(href=shoeinstance.shoe.url) #{shoeinstance.shoe.name}
+  p #[strong Color:] #{shoeinstance.color}
+
+  p #[strong Price:] 
+      span $#{shoeinstance.shoe.price}
+
+  if shoeinstance.status!='Available'
+    p #[strong Size:] #{shoeinstance.size}

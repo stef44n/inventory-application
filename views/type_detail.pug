@@ -1,0 +1,18 @@
+extends layout
+
+block content
+
+  h1 Type: #{type.name}
+
+  div(style='margin-left:20px;margin-top:20px')
+
+    h4 Shoes
+
+    dl
+      each shoe in type_shoes
+        dt
+          a(href=shoe.url) #{shoe.name}
+        dd $#{shoe.price} - #{shoe.description}
+
+      else
+        p This type has no shoes

@@ -1,0 +1,16 @@
+extends layout
+
+block content
+  h1= title
+  p Welcome to #[em InventoryApplication], a very basic Express website developed as a tutorial example on the Mozilla Developer Network <br>and adapted by #[strong stef44n] to practice using Express and MongoDB (Mongoose) as part of T.O.P.
+
+  h1 Dynamic content
+
+  p The app includes the following data:
+
+  ul
+    li #[strong Shoes:] !{shoe_count}
+    li #[strong IN STOCK:] !{shoe_instance_count}
+    li #[strong Copies available:] !{shoe_instance_available_count}
+    li #[strong Brands:] !{brand_count}
+    li #[strong Types:] !{type_count}
