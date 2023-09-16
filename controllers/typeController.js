@@ -1,3 +1,4 @@
+const { body, validationResult } = require("express-validator");
 const Shoe = require("../models/shoe");
 const Type = require("../models/type");
 const asyncHandler = require("express-async-handler");
@@ -33,14 +34,51 @@ exports.type_detail = asyncHandler(async (req, res, next) => {
 });
 
 // Display Type create form on GET.
-exports.type_create_get = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: Type create GET");
-});
+exports.type_create_get = (req, res, next) => {
+    res.render("type_form", { title: "Create Type" });
+};
 
 // Handle Type create on POST.
-exports.type_create_post = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: Type create POST");
-});
+exports.type_create_post = [
+    // Validate and sanitize the name field.
+    body("name", "Type name must contain at least 3 characters")
+        .trim()
+        .isLength({ min: 3 })
+        .escape(),
+
+    // Process request after validation and sanitization.
+    asyncHandler(async (req, res, next) => {
+        // Extract the validation errors from a request.
+        const errors = validationResult(req);
+
+        // Create a type object with escaped and trimmed data.
+        const type = new Type({ name: req.body.name });
+
+        if (!errors.isEmpty()) {
+            // There are errors. Render the form again with sanitized values/error messages.
+            res.render("type_form", {
+                title: "Create Type",
+                type: type,
+                errors: errors.array(),
+            });
+            return;
+        } else {
+            // Data from form is valid.
+            // Check if Type with same name already exists.
+            const typeExists = await Type.findOne({
+                name: req.body.name,
+            }).exec();
+            if (typeExists) {
+                // Type exists, redirect to its detail page.
+                res.redirect(typeExists.url);
+            } else {
+                await type.save();
+                // New type saved. Redirect to type detail page.
+                res.redirect(type.url);
+            }
+        }
+    }),
+];
 
 // Display Type delete form on GET.
 exports.type_delete_get = asyncHandler(async (req, res, next) => {
