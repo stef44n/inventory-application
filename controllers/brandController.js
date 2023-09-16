@@ -1,3 +1,4 @@
+const { body, validationResult } = require("express-validator");
 const Shoe = require("../models/shoe");
 const Brand = require("../models/brand");
 const asyncHandler = require("express-async-handler");
@@ -34,14 +35,67 @@ exports.brand_detail = asyncHandler(async (req, res, next) => {
 });
 
 // Display Brand create form on GET.
-exports.brand_create_get = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: Brand create GET");
-});
+exports.brand_create_get = (req, res, next) => {
+    res.render("brand_form", { title: "Create Brand" });
+};
 
 // Handle Brand create on POST.
-exports.brand_create_post = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: Brand create POST");
-});
+exports.brand_create_post = [
+    // Validate and sanitize fields.
+    body("name")
+        .trim()
+        .isLength({ min: 1 })
+        .escape()
+        .withMessage("Name must be specified.")
+        .isAlphanumeric()
+        .withMessage("Name has non-alphanumeric characters."),
+    body("country")
+        .trim()
+        .isLength({ min: 1 })
+        .escape()
+        .withMessage("Country name must be specified.")
+        .isAlphanumeric()
+        .withMessage("Country name has non-alphanumeric characters."),
+    body("established", "Invalid date")
+        .optional({ values: "falsy" })
+        .isISO8601()
+        .toDate(),
+    // body("date_of_death", "Invalid date of death")
+    //     .optional({ values: "falsy" })
+    //     .isISO8601()
+    //     .toDate(),
+
+    // Process request after validation and sanitization.
+    asyncHandler(async (req, res, next) => {
+        // Extract the validation errors from a request.
+        const errors = validationResult(req);
+
+        // Create Brand object with escaped and trimmed data
+        const brand = new Brand({
+            name: req.body.name,
+            country: req.body.country,
+            established: req.body.established,
+            // date_of_death: req.body.date_of_death,
+        });
+
+        if (!errors.isEmpty()) {
+            // There are errors. Render form again with sanitized values/errors messages.
+            res.render("brand_form", {
+                title: "Create Brand",
+                brand: brand,
+                errors: errors.array(),
+            });
+            return;
+        } else {
+            // Data from form is valid.
+
+            // Save brand.
+            await brand.save();
+            // Redirect to new brand record.
+            res.redirect(brand.url);
+        }
+    }),
+];
 
 // Display Brand delete form on GET.
 exports.brand_delete_get = asyncHandler(async (req, res, next) => {
