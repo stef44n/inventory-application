@@ -1,3 +1,5 @@
+const { body, validationResult } = require("express-validator");
+const Shoe = require("../models/shoe");
 const ShoeInstance = require("../models/shoeinstance");
 const asyncHandler = require("express-async-handler");
 
@@ -32,13 +34,60 @@ exports.shoeinstance_detail = asyncHandler(async (req, res, next) => {
 
 // Display ShoeInstance create form on GET.
 exports.shoeinstance_create_get = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: ShoeInstance create GET");
+    const allShoes = await Shoe.find({}, "name").exec();
+
+    res.render("shoeinstance_form", {
+        title: "Create ShoeInstance",
+        shoe_list: allShoes,
+    });
 });
 
 // Handle ShoeInstance create on POST.
-exports.shoeinstance_create_post = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: ShoeInstance create POST");
-});
+exports.shoeinstance_create_post = [
+    // Validate and sanitize fields.
+    body("shoe", "Shoe must be specified").trim().isLength({ min: 1 }).escape(),
+    body("color", "Color must be specified")
+        .trim()
+        .isLength({ min: 1 })
+        .escape(),
+    // body("status").escape(),
+    body("size", "Invalid size").optional({ values: "falsy" }),
+    // .isISO8601()
+    // .toDate(),
+
+    // Process request after validation and sanitization.
+    asyncHandler(async (req, res, next) => {
+        // Extract the validation errors from a request.
+        const errors = validationResult(req);
+
+        // Create a ShoeInstance object with escaped and trimmed data.
+        const shoeInstance = new ShoeInstance({
+            shoe: req.body.shoe,
+            color: req.body.color,
+            // status: req.body.status,
+            size: req.body.size,
+        });
+
+        if (!errors.isEmpty()) {
+            // There are errors.
+            // Render form again with sanitized values and error messages.
+            const allShoes = await Shoe.find({}, "name").exec();
+
+            res.render("shoeinstance_form", {
+                title: "Create ShoeInstance",
+                shoe_list: allShoes,
+                selected_shoe: shoeInstance.shoe._id,
+                errors: errors.array(),
+                shoeinstance: shoeInstance,
+            });
+            return;
+        } else {
+            // Data from form is valid
+            await shoeInstance.save();
+            res.redirect(shoeInstance.url);
+        }
+    }),
+];
 
 // Display ShoeInstance delete form on GET.
 exports.shoeinstance_delete_get = asyncHandler(async (req, res, next) => {

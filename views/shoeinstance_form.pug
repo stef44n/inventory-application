@@ -1,0 +1,43 @@
+extends layout
+
+block content
+  h1=title
+
+  form(method='POST' action='')
+    div.form-group
+      label(for='shoe') Shoe:
+      select#shoe.form-control(type='select' placeholder='Select shoe' name='shoe' required='true')
+        - shoe_list.sort(function(a, b) {let textA = a.name.toUpperCase(); let textB = b.name.toUpperCase(); return (textA < textB) ? -1 : (textA > textB) ? 1 : 0;});
+        for shoe in shoe_list
+          option(value=shoe._id, selected=(selected_shoe==shoe._id.toString() ? 'selected' : false) ) #{shoe.name}
+
+    div.form-group
+      label(for='color') Color:
+      select#color.form-control(type='select' placeholder='Select color' name='color' required='true' )
+        option(value='White' selected=(undefined===shoeinstance || shoeinstance.color!='White' ? false:'selected')) White
+        option(value='Black' selected=(undefined===shoeinstance || shoeinstance.color!='Black' ? false:'selected')) Black
+        option(value='Red' selected=(undefined===shoeinstance || shoeinstance.color!='Red' ? false:'selected')) Red
+        option(value='Blue' selected=(undefined===shoeinstance || shoeinstance.color!='Blue' ? false:'selected')) Blue
+      
+    div.form-group
+      label(for='size') Size:
+      select#size.form-control(type='select' placeholder='Select size' name='size' required='true' )
+        option(value='8' selected=(undefined===shoeinstance || shoeinstance.size!='8' ? false:'selected')) 8
+        option(value='9' selected=(undefined===shoeinstance || shoeinstance.size!='9' ? false:'selected')) 9
+        option(value='10' selected=(undefined===shoeinstance || shoeinstance.size!='10' ? false:'selected')) 10
+        option(value='11' selected=(undefined===shoeinstance || shoeinstance.size!='11' ? false:'selected')) 11
+
+    //- div.form-group
+    //-   label(for='status') Status:
+    //-   select#status.form-control(type='select' placeholder='Select status' name='status' required='true' )
+    //-     option(value='Maintenance' selected=(undefined===shoeinstance || shoeinstance.status!='Maintenance' ? false:'selected')) Maintenance
+    //-     option(value='Available' selected=(undefined===shoeinstance || shoeinstance.status!='Available' ? false:'selected')) Available
+    //-     option(value='Loaned' selected=(undefined===shoeinstance || shoeinstance.status!='Loaned' ? false:'selected')) Loaned
+    //-     option(value='Reserved' selected=(undefined===shoeinstance || shoeinstance.status!='Reserved' ? false:'selected')) Reserved
+
+    button.btn.btn-primary(type='submit') Submit
+
+  if errors
+    ul
+      for error in errors
+        li!= error.msg
