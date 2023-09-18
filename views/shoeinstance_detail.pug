@@ -13,3 +13,7 @@ block content
 
   if shoeinstance.status!='Available'
     p #[strong Size:] #{shoeinstance.size}
+
+  hr
+  p
+    a(href=shoeinstance.url+'/delete') Delete ShoeInstance

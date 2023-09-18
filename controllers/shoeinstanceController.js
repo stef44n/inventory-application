@@ -91,12 +91,26 @@ exports.shoeinstance_create_post = [
 
 // Display ShoeInstance delete form on GET.
 exports.shoeinstance_delete_get = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: ShoeInstance delete GET");
+    const shoeInstance = await ShoeInstance.findById(req.params.id)
+        .populate("shoe")
+        .exec();
+
+    if (shoeInstance === null) {
+        // No results.
+        res.redirect("/catalog/shoeinstances");
+    }
+
+    res.render("shoeinstance_delete", {
+        title: "Delete ShoeInstance",
+        shoeinstance: shoeInstance,
+    });
 });
 
 // Handle ShoeInstance delete on POST.
 exports.shoeinstance_delete_post = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: ShoeInstance delete POST");
+    // Assume valid ShoeInstance id in field.
+    await ShoeInstance.findByIdAndRemove(req.body.id);
+    res.redirect("/catalog/shoeinstances");
 });
 
 // Display ShoeInstance update form on GET.
