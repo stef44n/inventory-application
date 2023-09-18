@@ -82,12 +82,44 @@ exports.type_create_post = [
 
 // Display Type delete form on GET.
 exports.type_delete_get = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: Type delete GET");
+    // Get details of type and all associated shoes (in parallel)
+    const [type, shoesInType] = await Promise.all([
+        Type.findById(req.params.id).exec(),
+        Shoe.find({ type: req.params.id }, "name description").exec(),
+    ]);
+    if (type === null) {
+        // No results.
+        res.redirect("/catalog/types");
+    }
+
+    res.render("type_delete", {
+        title: "Delete Type",
+        type: type,
+        type_shoes: shoesInType,
+    });
 });
 
 // Handle Type delete on POST.
 exports.type_delete_post = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: Type delete POST");
+    // Get details of type and all associated shoes (in parallel)
+    const [type, shoesInType] = await Promise.all([
+        Type.findById(req.params.id).exec(),
+        Shoe.find({ type: req.params.id }, "name description").exec(),
+    ]);
+
+    if (shoesInType.length > 0) {
+        // Type has shoes. Render in same way as for GET route.
+        res.render("type_delete", {
+            title: "Delete Type",
+            type: type,
+            type_shoes: shoesInType,
+        });
+        return;
+    } else {
+        // Type has no shoes. Delete object and redirect to the list of types.
+        await Type.findByIdAndRemove(req.body.id);
+        res.redirect("/catalog/types");
+    }
 });
 
 // Display Type update form on GET.
