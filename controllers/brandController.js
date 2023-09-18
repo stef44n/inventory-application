@@ -99,12 +99,45 @@ exports.brand_create_post = [
 
 // Display Brand delete form on GET.
 exports.brand_delete_get = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: Brand delete GET");
+    // Get details of brand and all their shoes (in parallel)
+    const [brand, allShoesByBrand] = await Promise.all([
+        Brand.findById(req.params.id).exec(),
+        Shoe.find({ brand: req.params.id }, "name description").exec(),
+    ]);
+
+    if (brand === null) {
+        // No results.
+        res.redirect("/catalog/brands");
+    }
+
+    res.render("brand_delete", {
+        title: "Delete Brand",
+        brand: brand,
+        brand_shoes: allShoesByBrand,
+    });
 });
 
 // Handle Brand delete on POST.
 exports.brand_delete_post = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: Brand delete POST");
+    // Get details of brand and all their shoes (in parallel)
+    const [brand, allShoesByBrand] = await Promise.all([
+        Brand.findById(req.params.id).exec(),
+        Shoe.find({ brand: req.params.id }, "name description").exec(),
+    ]);
+
+    if (allShoesByBrand.length > 0) {
+        // Brand has shoes. Render in same way as for GET route.
+        res.render("brand_delete", {
+            title: "Delete Brand",
+            brand: brand,
+            brand_shoes: allShoesByBrand,
+        });
+        return;
+    } else {
+        // Brand has no shoes. Delete object and redirect to the list of brands.
+        await Brand.findByIdAndRemove(req.body.brandid);
+        res.redirect("/catalog/brands");
+    }
 });
 
 // Display Brand update form on GET.
