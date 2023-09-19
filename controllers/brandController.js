@@ -142,10 +142,69 @@ exports.brand_delete_post = asyncHandler(async (req, res, next) => {
 
 // Display Brand update form on GET.
 exports.brand_update_get = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: Brand update GET");
+    const brand = await Brand.findById(req.params.id).exec();
+    if (brand === null) {
+        // No results.
+        const err = new Error("Brand not found");
+        err.status = 404;
+        return next(err);
+    }
+
+    res.render("brand_form", { title: "Update Brand", brand: brand });
 });
 
 // Handle Brand update on POST.
-exports.brand_update_post = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: Brand update POST");
-});
+exports.brand_update_post = [
+    // Validate and sanitize fields.
+    body("name")
+        .trim()
+        .isLength({ min: 1 })
+        .escape()
+        .withMessage("Name must be specified.")
+        .isAlphanumeric()
+        .withMessage("Name has non-alphanumeric characters."),
+    body("country")
+        .trim()
+        .isLength({ min: 1 })
+        .escape()
+        .withMessage("Country name must be specified.")
+        .isAlphanumeric()
+        .withMessage("Country name has non-alphanumeric characters."),
+    body("established", "Invalid date")
+        .optional({ values: "falsy" })
+        .isISO8601()
+        .toDate(),
+    // body("date_of_death", "Invalid date of death")
+    //     .optional({ values: "falsy" })
+    //     .isISO8601()
+    //     .toDate(),
+
+    // Process request after validation and sanitization.
+    asyncHandler(async (req, res, next) => {
+        // Extract the validation errors from a request.
+        const errors = validationResult(req);
+
+        // Create Brand object with escaped and trimmed data (and the old id!)
+        const brand = new Brand({
+            name: req.body.name,
+            country: req.body.country,
+            established: req.body.established,
+            // date_of_death: req.body.date_of_death,
+            _id: req.params.id,
+        });
+
+        if (!errors.isEmpty()) {
+            // There are errors. Render the form again with sanitized values and error messages.
+            res.render("brand_form", {
+                title: "Update Brand",
+                brand: brand,
+                errors: errors.array(),
+            });
+            return;
+        } else {
+            // Data from form is valid. Update the record.
+            await Brand.findByIdAndUpdate(req.params.id, brand);
+            res.redirect(brand.url);
+        }
+    }),
+];
