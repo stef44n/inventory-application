@@ -155,12 +155,50 @@ exports.shoe_create_post = [
 
 // Display shoe delete form on GET.
 exports.shoe_delete_get = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: Shoe delete GET");
+    const [shoe, shoeInstances] = await Promise.all([
+        Shoe.findById(req.params.id).populate("brand").populate("type").exec(),
+        ShoeInstance.find({ shoe: req.params.id }).exec(),
+    ]);
+
+    if (shoe === null) {
+        // No results.
+        res.redirect("/catalog/shoes");
+    }
+
+    res.render("shoe_delete", {
+        title: "Delete Shoe",
+        shoe: shoe,
+        shoe_instances: shoeInstances,
+    });
 });
 
 // Handle shoe delete on POST.
 exports.shoe_delete_post = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: Shoe delete POST");
+    // Assume the post has valid id (ie no validation/sanitization).
+
+    const [shoe, shoeInstances] = await Promise.all([
+        Shoe.findById(req.params.id).populate("brand").populate("type").exec(),
+        ShoeInstance.find({ shoe: req.params.id }).exec(),
+    ]);
+
+    if (shoe === null) {
+        // No results.
+        res.redirect("/catalog/shoes");
+    }
+
+    if (shoeInstances.length > 0) {
+        // Shoe has shoe_instances. Render in same way as for GET route.
+        res.render("shoe_delete", {
+            title: "Delete Shoe",
+            shoe: shoe,
+            shoe_instances: shoeInstances,
+        });
+        return;
+    } else {
+        // Shoe has no ShoeInstance objects. Delete object and redirect to the list of shoes.
+        await Shoe.findByIdAndRemove(req.body.id);
+        res.redirect("/catalog/shoes");
+    }
 });
 
 // Display shoe update form on GET.

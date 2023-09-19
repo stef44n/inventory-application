@@ -1,0 +1,42 @@
+extends layout
+
+block content
+
+  h1 #{title}: #{shoe.name}
+
+  p #[strong Brand:] 
+    a(href=shoe.brand.url) #{shoe.brand.name}
+  p #[strong Description:] #{shoe.description}
+  p #[strong Price:] $#{shoe.price}
+  p #[strong Type:] 
+    each val in shoe.type
+      a(href=val.url) #{val.name}
+      if index < shoe.type.length - 1
+        |, 
+
+  hr
+
+  if shoe_instances.length
+
+    p #[strong Delete the following models before attempting to delete this Shoe.]
+
+    div(style='margin-left:20px;margin-top:20px')
+
+      h4 Models
+
+      each shoe_copy in shoe_instances
+        hr
+        p #[strong Color:] #{shoe_copy.color}
+        if shoe_copy.status!='Available'
+          p #[strong Size:] #{shoe_copy.size}
+        p #[strong Id:] 
+          a(href=shoe_copy.url) #{shoe_copy._id}
+
+  else
+    p Do you really want to delete this Shoe?
+
+    form(method='POST' action='')
+      div.form-group
+        input#id.form-control(type='hidden',name='id', required='true', value=shoe._id )
+
+      button.btn.btn-primary(type='submit') Delete
