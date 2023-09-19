@@ -5,7 +5,10 @@ const asyncHandler = require("express-async-handler");
 
 // Display list of all ShoeInstances.
 exports.shoeinstance_list = asyncHandler(async (req, res, next) => {
-    const allShoeInstances = await ShoeInstance.find().populate("shoe").exec();
+    const allShoeInstances = await ShoeInstance.find()
+        .populate("shoe")
+        .sort({ size: 1 })
+        .exec();
 
     res.render("shoeinstance_list", {
         title: "Shoe Instance List",
