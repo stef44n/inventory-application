@@ -203,10 +203,117 @@ exports.shoe_delete_post = asyncHandler(async (req, res, next) => {
 
 // Display shoe update form on GET.
 exports.shoe_update_get = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: Shoe update GET");
+    // Get shoe, brands and types for form.
+    const [shoe, allBrands, allTypes] = await Promise.all([
+        Shoe.findById(req.params.id).populate("brand").populate("type").exec(),
+        Brand.find().exec(),
+        Type.find().exec(),
+    ]);
+
+    if (shoe === null) {
+        // No results.
+        const err = new Error("Shoe not found");
+        err.status = 404;
+        return next(err);
+    }
+
+    // Mark our selected types as checked.
+    for (const type of allTypes) {
+        for (const shoe_t of shoe.type) {
+            if (type._id.toString() === shoe_t._id.toString()) {
+                type.checked = "true";
+            }
+        }
+    }
+
+    res.render("shoe_form", {
+        title: "Update Shoe",
+        brands: allBrands,
+        types: allTypes,
+        shoe: shoe,
+    });
 });
 
 // Handle shoe update on POST.
-exports.shoe_update_post = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: Shoe update POST");
-});
+exports.shoe_update_post = [
+    // Convert the type to an array.
+    (req, res, next) => {
+        if (!(req.body.type instanceof Array)) {
+            if (typeof req.body.type === "undefined") {
+                req.body.type = [];
+            } else {
+                req.body.type = new Array(req.body.type);
+            }
+        }
+        next();
+    },
+
+    // Validate and sanitize fields.
+    body("name", "Name must not be empty.")
+        .trim()
+        .isLength({ min: 1 })
+        .escape(),
+    body("brand", "Brand must not be empty.")
+        .trim()
+        .isLength({ min: 1 })
+        .escape(),
+    body("description", "Description must not be empty.")
+        .trim()
+        .isLength({ min: 1 })
+        .escape(),
+    body("price", "Price must not be empty")
+        .trim()
+        .isLength({ min: 1 })
+        .escape(),
+    body("type.*").escape(),
+
+    // Process request after validation and sanitization.
+    asyncHandler(async (req, res, next) => {
+        // Extract the validation errors from a request.
+        const errors = validationResult(req);
+
+        // Create a Shoe object with escaped/trimmed data and old id.
+        const shoe = new Shoe({
+            title: req.body.name,
+            brand: req.body.brand,
+            description: req.body.description,
+            price: req.body.price,
+            type: typeof req.body.type === "undefined" ? [] : req.body.type,
+            _id: req.params.id, // This is required, or a new ID will be assigned!
+        });
+
+        if (!errors.isEmpty()) {
+            // There are errors. Render form again with sanitized values/error messages.
+
+            // Get all brands and types for form
+            const [allBrands, allTypes] = await Promise.all([
+                Brand.find().exec(),
+                Type.find().exec(),
+            ]);
+
+            // Mark our selected types as checked.
+            for (const type of allTypes) {
+                if (shoe.type.indexOf(type._id) > -1) {
+                    type.checked = "true";
+                }
+            }
+            res.render("shoe_form", {
+                title: "Update Shoe",
+                brands: allBrands,
+                types: allTypes,
+                shoe: shoe,
+                errors: errors.array(),
+            });
+            return;
+        } else {
+            // Data from form is valid. Update the record.
+            const updatedShoe = await Shoe.findByIdAndUpdate(
+                req.params.id,
+                shoe,
+                {}
+            );
+            // Redirect to shoe detail page.
+            res.redirect(updatedShoe.url);
+        }
+    }),
+];
