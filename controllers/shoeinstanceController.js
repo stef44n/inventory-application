@@ -118,10 +118,78 @@ exports.shoeinstance_delete_post = asyncHandler(async (req, res, next) => {
 
 // Display ShoeInstance update form on GET.
 exports.shoeinstance_update_get = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: ShoeInstance update GET");
+    // Get shoe, all shoes for form (in parallel)
+    const [shoeInstance, allShoes] = await Promise.all([
+        ShoeInstance.findById(req.params.id).populate("shoe").exec(),
+        Shoe.find(),
+    ]);
+
+    if (shoeInstance === null) {
+        // No results.
+        const err = new Error("Shoe copy not found");
+        err.status = 404;
+        return next(err);
+    }
+
+    res.render("shoeinstance_form", {
+        title: "Update ShoeInstance",
+        shoe_list: allShoes,
+        selected_shoe: shoeInstance.shoe._id,
+        shoeinstance: shoeInstance,
+    });
 });
 
 // Handle shoeinstance update on POST.
-exports.shoeinstance_update_post = asyncHandler(async (req, res, next) => {
-    res.send("NOT IMPLEMENTED: ShoeInstance update POST");
-});
+exports.shoeinstance_update_post = [
+    // Validate and sanitize fields.
+    body("shoe", "Shoe must be specified").trim().isLength({ min: 1 }).escape(),
+    body("color", "Color must be specified")
+        .trim()
+        .isLength({ min: 1 })
+        .escape(),
+    // body("status").escape(),
+    body("size", "Invalid size").trim().isLength({ min: 1 }).escape(),
+    // .optional({ values: "falsy" })
+    // .isISO8601()
+    // .toDate(),
+
+    // Process request after validation and sanitization.
+    asyncHandler(async (req, res, next) => {
+        // Extract the validation errors from a request.
+        const errors = validationResult(req);
+
+        // Create a ShoeInstance object with escaped/trimmed data and current id.
+        const shoeInstance = new ShoeInstance({
+            shoe: req.body.shoe,
+            color: req.body.color,
+            // status: req.body.status,
+            size: req.body.size,
+            _id: req.params.id,
+        });
+
+        if (!errors.isEmpty()) {
+            // There are errors.
+            // Render the form again, passing sanitized values and errors.
+
+            const allShoes = await Shoe.find({}, "name").exec();
+
+            res.render("shoeinstance_form", {
+                title: "Update ShoeInstance",
+                shoe_list: allShoes,
+                selected_shoe: shoeInstance.shoe._id,
+                errors: errors.array(),
+                shoeinstance: shoeInstance,
+            });
+            return;
+        } else {
+            // Data from form is valid.
+            await ShoeInstance.findByIdAndUpdate(
+                req.params.id,
+                shoeInstance,
+                {}
+            );
+            // Redirect to detail page.
+            res.redirect(shoeInstance.url);
+        }
+    }),
+];
