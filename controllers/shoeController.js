@@ -11,13 +11,17 @@ exports.index = asyncHandler(async (req, res, next) => {
     const [
         numShoes,
         numShoeInstances,
-        numAvailableShoeInstances,
+        // numAvailableShoeInstances,
         numBrands,
         numTypes,
     ] = await Promise.all([
         Shoe.countDocuments({}).exec(),
         ShoeInstance.countDocuments({}).exec(),
-        ShoeInstance.countDocuments({ status: "Available" }).exec(),
+        // ShoeInstance
+        //     .countDocuments
+        //     // { status: "Available" }
+        //     ()
+        //     .exec(),
         Brand.countDocuments({}).exec(),
         Type.countDocuments({}).exec(),
     ]);
@@ -26,7 +30,7 @@ exports.index = asyncHandler(async (req, res, next) => {
         title: "Inventory Application Home",
         shoe_count: numShoes,
         shoe_instance_count: numShoeInstances,
-        shoe_instance_available_count: numAvailableShoeInstances,
+        // shoe_instance_available_count: numAvailableShoeInstances,
         brand_count: numBrands,
         type_count: numTypes,
     });
